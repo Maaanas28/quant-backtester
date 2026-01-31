@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Comparison - NeuroQuant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .mobile-menu.active {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    
+    <header class="border-b border-neutral-900 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-lg sm:text-xl font-semibold">NeuroQuant</h1>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6 text-sm">
+                    <a href="/" class="text-neutral-400 hover:text-white transition">Home</a>
+                    <a href="/dashboard" class="text-neutral-400 hover:text-white transition">Dashboard</a>
+                    <a href="/strategies" class="text-neutral-400 hover:text-white transition">Strategies</a>
+                    <a href="/backtest" class="text-neutral-400 hover:text-white transition">Backtest</a>
+                    <a href="/compare" class="text-white font-medium">Compare</a>
+                    <a href="/lab" class="text-neutral-400 hover:text-white transition">Lab</a>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 px-3 py-1.5 bg-neutral-900 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-mono text-neutral-400">LIVE</span>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-neutral-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <nav id="mobileMenu" class="mobile-menu md:hidden mt-4 space-y-2">
+                <a href="/" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Home</a>
+                <a href="/dashboard" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Dashboard</a>
+                <a href="/strategies" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Strategies</a>
+                <a href="/backtest" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Backtest</a>
+                <a href="/compare" class="block px-4 py-2 text-white font-medium bg-neutral-900 rounded-lg">Compare</a>
+                <a href="/lab" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Lab</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-2">Strategy Comparison</h2>
+        <p class="text-sm sm:text-base text-neutral-500 mb-6 sm:mb-8">Compare performance of different strategies side-by-side</p>
+
+        <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6 mb-6">
+            <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">PARAMETERS</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs sm:text-sm text-neutral-400 mb-2">Symbol</label>
+                    <input type="text" id="symbol" value="AAPL" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700">
+                </div>
+                <div>
+                    <label class="block text-xs sm:text-sm text-neutral-400 mb-2">Start Date</label>
+                    <input type="date" id="startDate" value="2020-01-01" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700">
+                </div>
+                <div>
+                    <label class="block text-xs sm:text-sm text-neutral-400 mb-2">End Date</label>
+                    <input type="date" id="endDate" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="runComparison()" class="w-full bg-white text-black rounded-lg px-4 py-2 text-sm font-medium hover:bg-neutral-200 transition">
+                        Compare Strategies
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingState" class="hidden bg-neutral-950 border border-neutral-900 rounded-xl p-8 sm:p-12 text-center mb-6">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p class="text-sm sm:text-base text-neutral-400">Running comparison...</p>
+        </div>
+
+        <div id="resultsContainer" class="hidden space-y-6">
+            <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">PERFORMANCE COMPARISON</h3>
+                <div class="h-64 sm:h-80 lg:h-96 relative">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                    <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">RETURNS RANKING</h3>
+                    <div id="returnsRanking" class="space-y-2"></div>
+                </div>
+                <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                    <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">RISK-ADJUSTED RETURNS</h3>
+                    <div id="sharpeRanking" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">DETAILED METRICS</h3>
+                <div class="overflow-x-auto -mx-4 sm:mx-0">
+                    <table class="w-full text-xs sm:text-sm min-w-[600px]">
+                        <thead>
+                            <tr class="border-b border-neutral-800">
+                                <th class="text-left py-2 px-2 sm:px-0 text-neutral-400">Strategy</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Return</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Sharpe</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Sortino</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Max DD</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Trades</th>
+                                <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Final Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metricsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-neutral-900 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-neutral-500">
+            <p>NeuroQuant © 2025 • Algorithmic Trading Platform</p>
+        </div>
+    </footer>
+
+    <script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('active');
+    });
+
+    // Auto-detect API base URL (works for both local and deployed)
+    const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000/api' 
+        : `${window.location.origin}/api`;
+    let comparisonChart = null;
+
+    document.getElementById('endDate').valueAsDate = new Date();
+
+    async function runComparison() {
+        const symbol = document.getElementById('symbol').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        document.getElementById('resultsContainer').classList.add('hidden');
+        document.getElementById('loadingState').classList.remove('hidden');
+
+        try {
+            const response = await fetch(`${API_BASE}/compare_strategies?symbol=${symbol}&start_date=${startDate}&end_date=${endDate}`);
+            
+            if (!response.ok) throw new Error('Comparison failed');
+            
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            alert('Comparison failed: ' + error.message);
+            document.getElementById('loadingState').classList.add('hidden');
+        }
+    }
+
+    function displayResults(data) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('resultsContainer').classList.remove('hidden');
+
+        const results = data.results;
+        
+        // Sanitize data - replace any invalid values
+        results.forEach(r => {
+            if (!isFinite(r.total_return) || r.total_return === null || r.total_return === undefined) {
+                console.warn(`Invalid return for ${r.name}:`, r.total_return);
+                r.total_return = 0;
+            }
+            // Clamp extremely large values
+            if (Math.abs(r.total_return) > 10000) {
+                console.warn(`Clamping extreme return for ${r.name}: ${r.total_return}% -> 1000%`);
+                r.total_return = r.total_return > 0 ? 1000 : -1000;
+            }
+        });
+        
+        // Performance comparison chart
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        if (comparisonChart) comparisonChart.destroy();
+
+        const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
+        
+        // Get valid returns
+        const returns = results.map(r => r.total_return);
+        
+        console.log('Return values:', returns);
+        
+        const minReturn = Math.min(...returns);
+        const maxReturn = Math.max(...returns);
+        const range = Math.abs(maxReturn - minReturn);
+        
+        console.log('Range:', { minReturn, maxReturn, range });
+        
+        // Calculate sensible padding
+        let padding = Math.max(range * 0.15, 5);
+        
+        // If all values are the same or very close, use fixed padding
+        if (range < 1) {
+            padding = 10;
+        }
+        
+        const yMin = minReturn - padding;
+        const yMax = maxReturn + padding;
+        
+        console.log('Chart Y-axis:', { yMin, yMax, padding });
+        
+        comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: results.map(r => r.name),
+                datasets: [{
+                    label: 'Total Return (%)',
+                    data: returns,
+                    backgroundColor: results.map((r, i) => colors[i % colors.length]),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: 'rgb(163, 163, 163)' },
+                        grid: { color: 'rgba(64, 64, 64, 0.3)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        grace: '5%',
+                        beginAtZero: false,
+                        suggestedMin: yMin,
+                        suggestedMax: yMax,
+                        ticks: { 
+                            color: 'rgb(163, 163, 163)',
+                            stepSize: Math.max(Math.ceil(range / 5), 1),
+                            callback: value => {
+                                if (!isFinite(value)) return '';
+                                return value.toFixed(1) + '%';
+                            }
+                        },
+                        grid: { color: 'rgba(64, 64, 64, 0.3)' }
+                    }
+                }
+            }
+        });
+
+        // Returns ranking
+        const returnsSorted = [...results].sort((a, b) => b.total_return - a.total_return);
+        document.getElementById('returnsRanking').innerHTML = returnsSorted.map((r, i) => 
+            `<div class="flex items-center justify-between py-2 border-b border-neutral-900">
+                <div class="flex items-center space-x-3">
+                    <span class="text-neutral-500 font-mono text-xs">#${i+1}</span>
+                    <span>${r.name}</span>
+                </div>
+                <span class="${r.total_return >= 0 ? 'text-green-500' : 'text-red-500'} font-mono">${r.total_return.toFixed(2)}%</span>
+            </div>`
+        ).join('');
+
+        // Sharpe ranking
+        const sharpeSorted = [...results].sort((a, b) => (b.sharpe_ratio || 0) - (a.sharpe_ratio || 0));
+        document.getElementById('sharpeRanking').innerHTML = sharpeSorted.map((r, i) => 
+            `<div class="flex items-center justify-between py-2 border-b border-neutral-900">
+                <div class="flex items-center space-x-3">
+                    <span class="text-neutral-500 font-mono text-xs">#${i+1}</span>
+                    <span>${r.name}</span>
+                </div>
+                <span class="font-mono">${(r.sharpe_ratio || 0).toFixed(2)}</span>
+            </div>`
+        ).join('');
+
+        // Detailed metrics table
+        document.getElementById('metricsTable').innerHTML = results.map(r => 
+            `<tr class="border-b border-neutral-900">
+                <td class="py-2">${r.name}</td>
+                <td class="py-2 text-right ${r.total_return >= 0 ? 'text-green-500' : 'text-red-500'}">${r.total_return.toFixed(2)}%</td>
+                <td class="py-2 text-right">${(r.sharpe_ratio || 0).toFixed(2)}</td>
+                <td class="py-2 text-right">${(r.sortino_ratio || 0).toFixed(2)}</td>
+                <td class="py-2 text-right text-red-500">${(r.max_drawdown || 0).toFixed(2)}%</td>
+                <td class="py-2 text-right">${r.total_trades}</td>
+                <td class="py-2 text-right">$${r.final_value.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+            </tr>`
+        ).join('');
+    }
+    </script>
+
+</body>
+</html>

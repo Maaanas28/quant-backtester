@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtest - NeuroQuant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Mobile menu animations */
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .mobile-menu.active {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    
+    <header class="border-b border-neutral-900 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-lg sm:text-xl font-semibold">NeuroQuant</h1>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6 text-sm">
+                    <a href="/" class="text-neutral-400 hover:text-white transition">Home</a>
+                    <a href="/dashboard" class="text-neutral-400 hover:text-white transition">Dashboard</a>
+                    <a href="/strategies" class="text-neutral-400 hover:text-white transition">Strategies</a>
+                    <a href="/backtest" class="text-white font-medium">Backtest</a>
+                    <a href="/compare" class="text-neutral-400 hover:text-white transition">Compare</a>
+                    <a href="/lab" class="text-neutral-400 hover:text-white transition">Lab</a>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 px-3 py-1.5 bg-neutral-900 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-mono text-neutral-400">LIVE</span>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-neutral-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Mobile Navigation -->
+            <nav id="mobileMenu" class="mobile-menu md:hidden mt-4 space-y-2">
+                <a href="/" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Home</a>
+                <a href="/dashboard" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Dashboard</a>
+                <a href="/strategies" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Strategies</a>
+                <a href="/backtest" class="block px-4 py-2 text-white font-medium bg-neutral-900 rounded-lg">Backtest</a>
+                <a href="/compare" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Compare</a>
+                <a href="/lab" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Lab</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-2">Backtest Strategy</h2>
+        <p class="text-neutral-500 mb-6 sm:mb-8 text-sm sm:text-base">Test quantitative strategies on historical data</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            
+            <div class="lg:col-span-1 bg-neutral-950 border border-neutral-900 rounded-xl p-6">
+                <h3 class="text-sm font-mono text-neutral-500 mb-4">CONFIGURATION</h3>
+                <form id="backtestForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-neutral-400 mb-2">Strategy</label>
+                        <select id="strategySelect" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700">
+                            <option value="ma_cross">MA Crossover</option>
+                            <option value="rsi">RSI Mean Reversion</option>
+                            <option value="momentum">Momentum</option>
+                            <option value="buy_hold">Buy & Hold</option>
+                        </select>
+                    </div>
+                    <div id="parametersContainer"></div>
+                    <div>
+                        <label class="block text-sm text-neutral-400 mb-2">Symbol</label>
+                        <div class="relative">
+                            <input type="text" id="symbol" value="AAPL" 
+                                   class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700 uppercase" 
+                                   placeholder="Enter ticker (e.g., AAPL, RELIANCE.NS)" 
+                                   list="symbolSuggestions"
+                                   required>
+                            <datalist id="symbolSuggestions">
+                                <!-- Will be populated dynamically -->
+                            </datalist>
+                            <button type="button" id="validateSymbolBtn" 
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-1 bg-neutral-800 hover:bg-neutral-700 rounded transition">
+                                Validate
+                            </button>
+                        </div>
+                        <div id="symbolValidation" class="mt-1 text-xs hidden"></div>
+                        <div class="mt-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-xs text-neutral-500">Quick Select:</p>
+                                <select id="marketSelect" class="text-xs bg-neutral-900 border border-neutral-800 rounded px-2 py-1">
+                                    <option value="US Stocks">🇺🇸 US Stocks</option>
+                                    <option value="India NSE">🇮🇳 NSE</option>
+                                    <option value="India BSE">🇮🇳 BSE</option>
+                                    <option value="US ETFs">📊 ETFs</option>
+                                    <option value="Indices">📈 Indices</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-wrap gap-1" id="popularSymbols">
+                                <!-- Will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-neutral-400 mb-2">Start Date</label>
+                        <input type="date" id="startDate" value="2020-01-01" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-neutral-400 mb-2">End Date</label>
+                        <input type="date" id="endDate" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-neutral-400 mb-2">Initial Capital</label>
+                        <input type="number" id="capital" value="100000" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700" required>
+                    </div>
+                    <button type="submit" id="runButton" class="w-full bg-white text-black rounded-lg px-4 py-2 text-sm font-medium hover:bg-neutral-200 transition">
+                        Run Backtest
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div id="loadingState" class="hidden bg-neutral-950 border border-neutral-900 rounded-xl p-12 text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                    <p class="text-neutral-400">Running backtest...</p>
+                </div>
+
+                <div id="emptyState" class="bg-neutral-950 border border-neutral-900 rounded-xl p-12 text-center">
+                    <p class="text-neutral-500 mb-2">No backtest results yet</p>
+                    <p class="text-sm text-neutral-600">Configure parameters and run a backtest to see results</p>
+                </div>
+
+                <div id="resultsContainer" class="hidden space-y-6">
+                    <div class="flex justify-end mb-4">
+                        <button onclick="exportResults()" class="bg-neutral-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-neutral-800 transition">
+                            📥 Export Results (CSV)
+                        </button>
+                    </div>
+                    
+                    <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">MAIN PORTFOLIO METRICS</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Total Return</p>
+                                <p id="totalReturn" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Sharpe Ratio</p>
+                                <p id="sharpeRatio" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Max Drawdown</p>
+                                <p id="maxDrawdown" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Total Trades</p>
+                                <p id="totalTrades" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Sortino Ratio</p>
+                                <p id="sortinoRatio" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Final Value</p>
+                                <p id="finalValue" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shadow Portfolio Comparison -->
+                    <div id="shadowComparison" class="hidden bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">🌑 SHADOW PORTFOLIO (OPPOSITE TRADES)</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Total Return</p>
+                                <p id="shadowReturn" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Final Value</p>
+                                <p id="shadowFinalValue" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Sharpe Ratio</p>
+                                <p id="shadowSharpe" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Sortino Ratio</p>
+                                <p id="shadowSortino" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-neutral-800 pt-4">
+                            <h4 class="text-xs sm:text-sm font-mono text-neutral-500 mb-3">⚖️ COMPARISON</h4>
+                            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                                <div>
+                                    <p class="text-xs sm:text-sm text-neutral-400">Return Difference</p>
+                                    <p id="returnDifference" class="text-base sm:text-xl font-bold mt-1">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm text-neutral-400">Equity Difference</p>
+                                    <p id="equityDifference" class="text-base sm:text-xl font-bold mt-1">--</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">RISK METRICS</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Value at Risk (95%)</p>
+                                <p id="var95" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Value at Risk (99%)</p>
+                                <p id="var99" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">CVaR (95%)</p>
+                                <p id="cvar95" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">CVaR (99%)</p>
+                                <p id="cvar99" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Execution Details Section -->
+                    <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">⚙️ EXECUTION DETAILS (EVENT-DRIVEN ENGINE)</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Total Commission</p>
+                                <p id="totalCommission" class="text-lg sm:text-2xl font-bold mt-1 text-orange-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Total Slippage</p>
+                                <p id="totalSlippage" class="text-lg sm:text-2xl font-bold mt-1 text-orange-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Execution Cost</p>
+                                <p id="executionCost" class="text-lg sm:text-2xl font-bold mt-1 text-red-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Signals Generated</p>
+                                <p id="signalsGenerated" class="text-lg sm:text-2xl font-bold mt-1 text-blue-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Orders Placed</p>
+                                <p id="ordersPlaced" class="text-lg sm:text-2xl font-bold mt-1 text-blue-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Fills Received</p>
+                                <p id="fillsReceived" class="text-lg sm:text-2xl font-bold mt-1 text-green-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Bars Processed</p>
+                                <p id="barsProcessed" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Fill Rate</p>
+                                <p id="fillRate" class="text-lg sm:text-2xl font-bold mt-1 text-purple-500">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-neutral-400">Avg Commission/Trade</p>
+                                <p id="avgCommission" class="text-lg sm:text-2xl font-bold mt-1">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">EQUITY CURVE</h3>
+                        <div class="h-64 sm:h-80 lg:h-96 relative">
+                            <canvas id="equityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-4 sm:p-6">
+                        <h3 class="text-xs sm:text-sm font-mono text-neutral-500 mb-4">TRADES</h3>
+                        <div class="overflow-x-auto -mx-4 sm:mx-0">
+                            <table class="w-full text-xs sm:text-sm min-w-[700px]" id="tradesTable">
+                                <thead>
+                                    <tr class="border-b border-neutral-800">
+                                        <th class="text-left py-2 px-2 sm:px-0 text-neutral-400">Date</th>
+                                        <th class="text-left py-2 px-2 sm:px-0 text-neutral-400">Type</th>
+                                        <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Symbol</th>
+                                        <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Quantity</th>
+                                        <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Price</th>
+                                        <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Commission</th>
+                                        <th class="text-right py-2 px-2 sm:px-0 text-neutral-400">Slippage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tradesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-neutral-900 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-neutral-500">
+            <p>NeuroQuant © 2025 • Algorithmic Trading Platform</p>
+        </div>
+    </footer>
+
+    <script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('active');
+    });
+
+    // Auto-detect API base URL (works for both local and deployed)
+    const API_BASE = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000/api' 
+        : `${window.location.origin}/api`;
+    let equityChart = null;
+
+    const strategyParams = {
+        ma_cross: [
+            { name: 'short_window', label: 'Short Window', value: 20, min: 5, max: 50 },
+            { name: 'long_window', label: 'Long Window', value: 50, min: 20, max: 200 }
+        ],
+        rsi: [
+            { name: 'period', label: 'RSI Period', value: 14, min: 5, max: 30 },
+            { name: 'oversold', label: 'Oversold Level', value: 30, min: 10, max: 40 },
+            { name: 'overbought', label: 'Overbought Level', value: 70, min: 60, max: 90 }
+        ],
+        momentum: [
+            { name: 'lookback', label: 'Lookback Period', value: 20, min: 5, max: 60 }
+        ],
+        buy_hold: []
+    };
+
+    document.getElementById('endDate').valueAsDate = new Date();
+
+    let symbolCategories = {};
+    
+    // Load popular symbols
+    async function loadPopularSymbols() {
+        try {
+            const response = await fetch(API_BASE + '/symbols');
+            const data = await response.json();
+            const symbols = data.yfinance_symbols || [];
+            symbolCategories = data.categories || {};
+            
+            // Populate datalist for autocomplete
+            const datalist = document.getElementById('symbolSuggestions');
+            datalist.innerHTML = symbols.map(s => `<option value="${s}">`).join('');
+            
+            // Populate popular symbols for default category (US Stocks)
+            updateSymbolButtons('US Stocks');
+        } catch (error) {
+            console.error('Failed to load symbols:', error);
+        }
+    }
+
+    function updateSymbolButtons(category) {
+        const container = document.getElementById('popularSymbols');
+        const symbols = symbolCategories[category] || [];
+        
+        container.innerHTML = symbols.map(symbol => {
+            // Format display name (remove exchange suffix for display)
+            const displayName = symbol.replace('.NS', '').replace('.BO', '');
+            const suffix = symbol.includes('.NS') ? ' NSE' : symbol.includes('.BO') ? ' BSE' : '';
+            
+            return `<button type="button" 
+                class="px-2 py-1 text-xs bg-neutral-900 hover:bg-neutral-800 rounded border border-neutral-800 transition" 
+                onclick="selectSymbol('${symbol}')"
+                title="${symbol}">
+                ${displayName}${suffix ? '<span class="text-neutral-500 ml-1">' + suffix + '</span>' : ''}
+            </button>`;
+        }).join('');
+    }
+
+    // Market selector change
+    document.getElementById('marketSelect').addEventListener('change', (e) => {
+        updateSymbolButtons(e.target.value);
+    });
+
+    function selectSymbol(symbol) {
+        document.getElementById('symbol').value = symbol;
+        validateSymbol();
+    }
+
+    // Validate symbol
+    async function validateSymbol() {
+        const symbolInput = document.getElementById('symbol');
+        const symbol = symbolInput.value.trim().toUpperCase();
+        const validationDiv = document.getElementById('symbolValidation');
+        
+        if (!symbol) {
+            validationDiv.classList.add('hidden');
+            return;
+        }
+
+        symbolInput.value = symbol;
+        validationDiv.classList.remove('hidden');
+        validationDiv.className = 'mt-1 text-xs text-neutral-400';
+        validationDiv.innerHTML = '⏳ Validating...';
+
+        try {
+            const response = await fetch(API_BASE + `/validate-symbol/${symbol}`);
+            const data = await response.json();
+            
+            if (data.valid) {
+                validationDiv.className = 'mt-1 text-xs text-green-500';
+                const priceStr = data.current_price ? ` ($${data.current_price.toFixed(2)})` : '';
+                validationDiv.innerHTML = `✓ Valid: ${data.name}${priceStr}`;
+            } else {
+                validationDiv.className = 'mt-1 text-xs text-red-500';
+                validationDiv.innerHTML = `✗ ${data.message || 'Invalid symbol'}`;
+            }
+        } catch (error) {
+            validationDiv.className = 'mt-1 text-xs text-yellow-500';
+            validationDiv.innerHTML = '⚠ Could not validate (will try during backtest)';
+        }
+    }
+
+    // Auto-uppercase ticker but preserve exchange suffixes
+    document.getElementById('symbol').addEventListener('input', (e) => {
+        let value = e.target.value;
+        // Split by dot to handle exchange suffixes like .NS, .BO, .L, etc.
+        if (value.includes('.')) {
+            const parts = value.split('.');
+            parts[0] = parts[0].toUpperCase();
+            e.target.value = parts.join('.');
+        } else {
+            e.target.value = value.toUpperCase();
+        }
+    });
+
+    document.getElementById('symbol').addEventListener('blur', validateSymbol);
+    document.getElementById('validateSymbolBtn').addEventListener('click', validateSymbol);
+
+    // Load symbols on page load
+    loadPopularSymbols();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('strategy')) {
+        document.getElementById('strategySelect').value = urlParams.get('strategy');
+        if (urlParams.has('params')) {
+            try {
+                const params = JSON.parse(urlParams.get('params'));
+                window.urlParamsToApply = params;
+            } catch (e) {
+                console.error('Failed to parse URL params:', e);
+            }
+        }
+    }
+
+    document.getElementById('strategySelect').addEventListener('change', updateParameters);
+    updateParameters();
+
+    function updateParameters() {
+        const strategy = document.getElementById('strategySelect').value;
+        const container = document.getElementById('parametersContainer');
+        const params = strategyParams[strategy] || [];
+        
+        container.innerHTML = params.map(param => '<div><label class="block text-sm text-neutral-400 mb-2">' + param.label + '</label><input type="number" name="' + param.name + '" value="' + param.value + '" min="' + param.min + '" max="' + param.max + '" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-neutral-700"></div>').join('');
+
+        if (window.urlParamsToApply) {
+            Object.entries(window.urlParamsToApply).forEach(([key, value]) => {
+                const input = container.querySelector('[name="' + key + '"]');
+                if (input) input.value = value;
+            });
+            delete window.urlParamsToApply;
+        }
+    }
+
+    document.getElementById('backtestForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const strategy = document.getElementById('strategySelect').value;
+        const symbol = document.getElementById('symbol').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const capital = parseFloat(document.getElementById('capital').value);
+        
+        const strategy_params = {};
+        const paramInputs = document.getElementById('parametersContainer').querySelectorAll('input');
+        paramInputs.forEach(input => {
+            strategy_params[input.name] = parseFloat(input.value);
+        });
+
+        document.getElementById('emptyState').classList.add('hidden');
+        document.getElementById('resultsContainer').classList.add('hidden');
+        document.getElementById('loadingState').classList.remove('hidden');
+
+        try {
+            console.log('Sending backtest request:', { symbol, start_date: startDate, end_date: endDate, strategy, strategy_params });
+            
+            const response = await fetch(API_BASE + '/backtest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symbol: symbol,
+                    start_date: startDate,
+                    end_date: endDate,
+                    strategy: strategy,
+                    strategy_params: strategy_params
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Backtest failed:', errorText);
+                throw new Error('Backtest failed: ' + response.status);
+            }
+
+            const data = await response.json();
+            console.log('Backtest response:', data);
+            
+            displayResults(data, symbol);
+        } catch (error) {
+            alert('Backtest failed: ' + error.message);
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+    });
+
+    function displayResults(data, symbol) {
+        console.log('Displaying results:', data);
+        storeResults(data, symbol);
+        
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('resultsContainer').classList.remove('hidden');
+
+        // Main portfolio metrics
+        document.getElementById('totalReturn').textContent = data.agent_return.toFixed(2) + '%';
+        document.getElementById('sharpeRatio').textContent = (data.sharpe_ratio || 0).toFixed(2);
+        document.getElementById('sortinoRatio').textContent = (data.sortino_ratio || 0).toFixed(2);
+        document.getElementById('maxDrawdown').textContent = (data.max_drawdown || 0).toFixed(2) + '%';
+        document.getElementById('totalTrades').textContent = data.total_trades || 0;
+        document.getElementById('finalValue').textContent = '$' + data.final_value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        document.getElementById('var95').textContent = (data.value_at_risk_95 || 0).toFixed(2) + '%';
+        document.getElementById('var99').textContent = (data.value_at_risk_99 || 0).toFixed(2) + '%';
+        document.getElementById('cvar95').textContent = (data.conditional_var_95 || 0).toFixed(2) + '%';
+        document.getElementById('cvar99').textContent = (data.conditional_var_99 || 0).toFixed(2) + '%';
+
+        // Execution details - DEBUG LOGGING
+        console.log('API Response - Execution Details:', {
+            total_commission: data.total_commission,
+            total_slippage: data.total_slippage,
+            signals_generated: data.signals_generated,
+            orders_placed: data.orders_placed,
+            fills_received: data.fills_received,
+            bars_processed: data.bars_processed
+        });
+        
+        // Calculate from trades if backend totals are missing or zero
+        let totalCommission = data.total_commission || 0;
+        let totalSlippage = data.total_slippage || 0;
+        
+        // Fallback: sum from trades if totals are 0 but trades exist
+        if ((totalCommission === 0 || totalSlippage === 0) && data.trades && data.trades.length > 0) {
+            console.log('Backend totals missing/zero, calculating from trades...');
+            totalCommission = data.trades.reduce((sum, trade) => sum + (trade.commission || 0), 0);
+            totalSlippage = data.trades.reduce((sum, trade) => sum + (trade.slippage || 0), 0);
+            console.log('Calculated from trades:', { totalCommission, totalSlippage });
+        }
+        
+        const executionCost = totalCommission + Math.abs(totalSlippage);
+        const signalsGenerated = data.signals_generated || 0;
+        const ordersPlaced = data.orders_placed || 0;
+        const fillsReceived = data.fills_received || 0;
+        const barsProcessed = data.bars_processed || 0;
+        const fillRate = ordersPlaced > 0 ? ((fillsReceived / ordersPlaced) * 100) : 0;
+        const avgCommission = fillsReceived > 0 ? (totalCommission / fillsReceived) : 0;
+
+        document.getElementById('totalCommission').textContent = '$' + totalCommission.toFixed(2);
+        document.getElementById('totalSlippage').textContent = '$' + totalSlippage.toFixed(2);
+        document.getElementById('executionCost').textContent = '$' + executionCost.toFixed(2);
+        document.getElementById('signalsGenerated').textContent = signalsGenerated;
+        document.getElementById('ordersPlaced').textContent = ordersPlaced;
+        document.getElementById('fillsReceived').textContent = fillsReceived;
+        document.getElementById('barsProcessed').textContent = barsProcessed.toLocaleString();
+        document.getElementById('fillRate').textContent = fillRate.toFixed(1) + '%';
+        document.getElementById('avgCommission').textContent = '$' + avgCommission.toFixed(2);
+
+        const returnEl = document.getElementById('totalReturn');
+        returnEl.className = data.agent_return >= 0 
+            ? 'text-2xl font-bold mt-1 text-green-500' 
+            : 'text-2xl font-bold mt-1 text-red-500';
+
+        // Display shadow portfolio if available
+        if (data.shadow) {
+            document.getElementById('shadowComparison').classList.remove('hidden');
+            
+            document.getElementById('shadowReturn').textContent = data.shadow.total_return_pct.toFixed(2) + '%';
+            document.getElementById('shadowFinalValue').textContent = '$' + data.shadow.final_equity.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('shadowSharpe').textContent = (data.shadow.sharpe_ratio || 0).toFixed(2);
+            document.getElementById('shadowSortino').textContent = (data.shadow.sortino_ratio || 0).toFixed(2);
+            
+            const shadowReturnEl = document.getElementById('shadowReturn');
+            shadowReturnEl.className = data.shadow.total_return_pct >= 0
+                ? 'text-2xl font-bold mt-1 text-green-500'
+                : 'text-2xl font-bold mt-1 text-red-500';
+            
+            // Comparison metrics
+            document.getElementById('returnDifference').textContent = data.comparison.return_difference_pct.toFixed(2) + '%';
+            document.getElementById('equityDifference').textContent = '$' + data.comparison.equity_difference.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            const returnDiffEl = document.getElementById('returnDifference');
+            returnDiffEl.className = data.comparison.return_difference_pct >= 0
+                ? 'text-xl font-bold mt-1 text-green-500'
+                : 'text-xl font-bold mt-1 text-red-500';
+            
+            const equityDiffEl = document.getElementById('equityDifference');
+            equityDiffEl.className = data.comparison.equity_difference >= 0
+                ? 'text-xl font-bold mt-1 text-green-500'
+                : 'text-xl font-bold mt-1 text-red-500';
+        } else {
+            document.getElementById('shadowComparison').classList.add('hidden');
+        }
+
+        updateEquityChart(data.portfolio_history || [], data.portfolio_dates || [], data.shadow?.equity_curve || null);
+        updateTradesTable(data.trades || [], symbol);
+    }
+
+    function updateEquityChart(equityCurve, timestamps, shadowEquityCurve) {
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        
+        if (equityChart) equityChart.destroy();
+
+        // Ensure we have valid data
+        if (!equityCurve || equityCurve.length === 0) {
+            equityCurve = [100000];
+        }
+
+        // Calculate min/max for better scaling (considering both curves)
+        let allValues = [...equityCurve];
+        if (shadowEquityCurve && shadowEquityCurve.length > 0) {
+            allValues = [...allValues, ...shadowEquityCurve];
+        }
+        
+        const minValue = Math.min(...allValues);
+        const maxValue = Math.max(...allValues);
+        const padding = (maxValue - minValue) * 0.1 || 1000; // 10% padding or $1000 minimum
+
+        // Prepare datasets
+        const datasets = [{
+            label: 'Main Portfolio',
+            data: equityCurve,
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }];
+        
+        // Add shadow portfolio if available
+        if (shadowEquityCurve && shadowEquityCurve.length > 0) {
+            datasets.push({
+                label: 'Shadow Portfolio (Opposite)',
+                data: shadowEquityCurve,
+                borderColor: 'rgb(239, 68, 68)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            });
+        }
+
+        equityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timestamps || equityCurve.map((_, i) => i),
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: shadowEquityCurve && shadowEquityCurve.length > 0,
+                        labels: { color: 'rgb(163, 163, 163)' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: 'rgb(163, 163, 163)', maxTicksLimit: 8 },
+                        grid: { color: 'rgba(64, 64, 64, 0.3)' }
+                    },
+                    y: {
+                        min: minValue - padding,
+                        max: maxValue + padding,
+                        ticks: { 
+                            color: 'rgb(163, 163, 163)',
+                            callback: function(value) {
+                                return '$' + value.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                            }
+                        },
+                        grid: { color: 'rgba(64, 64, 64, 0.3)' }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateTradesTable(trades, symbol) {
+        const tbody = document.getElementById('tradesBody');
+        
+        if (!trades || trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-neutral-500">No trades executed</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = trades.slice(0, 50).map(trade => {
+            const action = trade.action || (trade.direction === 'BUY' ? 'BUY' : 'SELL');
+            const actionClass = action === 'BUY' || action === 'buy' ? 'text-green-500' : 'text-red-500';
+            const date = trade.date || trade.timestamp;
+            const commission = trade.commission || 0;
+            const slippage = trade.slippage || 0;
+            
+            return '<tr class="border-b border-neutral-900">' +
+                '<td class="py-2 px-2 sm:px-0">' + new Date(date).toLocaleDateString() + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 ' + actionClass + '">' + action.toUpperCase() + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 text-right">' + (trade.symbol || symbol) + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 text-right">' + (trade.quantity || trade.shares || 0) + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 text-right">$' + (trade.price || 0).toFixed(2) + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 text-right text-orange-500">$' + commission.toFixed(2) + '</td>' +
+                '<td class="py-2 px-2 sm:px-0 text-right text-orange-500">$' + slippage.toFixed(4) + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    let currentResults = null;
+    
+    function storeResults(data, symbol) {
+        currentResults = { ...data, symbol };
+    }
+
+    function exportResults() {
+        if (!currentResults) {
+            alert('No results to export');
+            return;
+        }
+
+        const csvRows = [];
+        csvRows.push('NeuroQuant Backtest Results');
+        csvRows.push('');
+        csvRows.push('Summary Metrics');
+        csvRows.push('Metric,Value');
+        csvRows.push(`Symbol,${currentResults.symbol}`);
+        csvRows.push(`Total Return,${currentResults.agent_return.toFixed(2)}%`);
+        csvRows.push(`Sharpe Ratio,${(currentResults.sharpe_ratio || 0).toFixed(2)}`);
+        csvRows.push(`Sortino Ratio,${(currentResults.sortino_ratio || 0).toFixed(2)}`);
+        csvRows.push(`Max Drawdown,${(currentResults.max_drawdown || 0).toFixed(2)}%`);
+        csvRows.push(`Value at Risk (95%),${(currentResults.value_at_risk_95 || 0).toFixed(2)}%`);
+        csvRows.push(`Value at Risk (99%),${(currentResults.value_at_risk_99 || 0).toFixed(2)}%`);
+        csvRows.push(`CVaR (95%),${(currentResults.conditional_var_95 || 0).toFixed(2)}%`);
+        csvRows.push(`CVaR (99%),${(currentResults.conditional_var_99 || 0).toFixed(2)}%`);
+        csvRows.push(`Total Trades,${currentResults.total_trades}`);
+        csvRows.push(`Final Value,$${currentResults.final_value.toFixed(2)}`);
+        csvRows.push('');
+        csvRows.push('Portfolio History');
+        csvRows.push('Date,Value');
+        
+        const dates = currentResults.portfolio_dates || [];
+        const values = currentResults.portfolio_history || [];
+        for (let i = 0; i < dates.length; i++) {
+            csvRows.push(`${dates[i]},$${values[i].toFixed(2)}`);
+        }
+
+        const csvContent = csvRows.join('\\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backtest_${currentResults.symbol}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Laboratory - NeuroQuant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .mobile-menu.active {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <!-- Header -->
+    <header class="border-b border-neutral-900 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-lg sm:text-xl font-semibold">NeuroQuant</h1>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6 text-sm">
+                    <a href="/" class="text-neutral-400 hover:text-white transition">Home</a>
+                    <a href="/dashboard" class="text-neutral-400 hover:text-white transition">Dashboard</a>
+                    <a href="/strategies" class="text-neutral-400 hover:text-white transition">Strategies</a>
+                    <a href="/backtest" class="text-neutral-400 hover:text-white transition">Backtest</a>
+                    <a href="/compare" class="text-neutral-400 hover:text-white transition">Compare</a>
+                    <a href="/lab" class="text-white font-medium">Lab</a>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 px-3 py-1.5 bg-neutral-900 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-mono text-neutral-400">LIVE</span>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-neutral-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <nav id="mobileMenu" class="mobile-menu md:hidden mt-4 space-y-2">
+                <a href="/" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Home</a>
+                <a href="/dashboard" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Dashboard</a>
+                <a href="/strategies" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Strategies</a>
+                <a href="/backtest" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Backtest</a>
+                <a href="/compare" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Compare</a>
+                <a href="/lab" class="block px-4 py-2 text-white font-medium bg-neutral-900 rounded-lg">Lab</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <!-- Header -->
+        <div class="mb-6 sm:mb-8">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2">Financial Laboratory</h2>
+            <p class="text-sm sm:text-base text-neutral-500">Advanced tools for portfolio optimization, financial modeling, and market analysis</p>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <button onclick="showTool('optimizer')" id="btn-optimizer" 
+                    class="tool-btn bg-neutral-900 border-2 border-green-500 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-green-500 mb-2">[ OPTIMIZER ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">Portfolio Optimization</div>
+                <div class="text-xs text-neutral-500">Efficient Frontier, Risk Parity, Max Sharpe</div>
+            </button>
+            
+            <button onclick="showTool('options')" id="btn-options"
+                    class="tool-btn bg-neutral-900 border-2 border-neutral-700 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-neutral-500 mb-2">[ OPTIONS ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">Options Pricing</div>
+                <div class="text-xs text-neutral-500">Black-Scholes, Greeks, Strategies</div>
+            </button>
+            
+            <button onclick="showTool('dcf')" id="btn-dcf"
+                    class="tool-btn bg-neutral-900 border-2 border-neutral-700 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-neutral-500 mb-2">[ VALUATION ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">DCF Model</div>
+                <div class="text-xs text-neutral-500">Discounted Cash Flow, Sensitivity</div>
+            </button>
+            
+            <button onclick="showTool('montecarlo')" id="btn-montecarlo"
+                    class="tool-btn bg-neutral-900 border-2 border-neutral-700 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-neutral-500 mb-2">[ SIMULATION ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">Monte Carlo</div>
+                <div class="text-xs text-neutral-500">Price Simulation, Scenarios</div>
+            </button>
+            
+            <button onclick="showTool('correlation')" id="btn-correlation"
+                    class="tool-btn bg-neutral-900 border-2 border-neutral-700 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-neutral-500 mb-2">[ ANALYSIS ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">Correlation Matrix</div>
+                <div class="text-xs text-neutral-500">Asset Correlations, Diversification</div>
+            </button>
+            
+            <button onclick="showTool('streaming')" id="btn-streaming"
+                    class="tool-btn bg-neutral-900 border-2 border-neutral-700 rounded-xl p-4 sm:p-6 text-left hover:bg-neutral-800 transition">
+                <div class="text-xs sm:text-sm text-neutral-500 mb-2">[ REAL-TIME ]</div>
+                <div class="text-base sm:text-lg font-bold mb-1">Market Data Stream</div>
+                <div class="text-xs text-neutral-500">Live Quotes, WebSocket</div>
+            </button>
+        </div>
+
+        <!-- Tool Sections -->
+        
+        <!-- Portfolio Optimizer -->
+        <div id="tool-optimizer" class="tool-section">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ PORTFOLIO OPTIMIZATION ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Symbols (comma-separated)</label>
+                        <input type="text" id="opt-symbols" value="AAPL,MSFT,GOOGL,AMZN,TSLA" 
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Optimization Type</label>
+                        <select id="opt-type" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                            <option value="max_sharpe">Max Sharpe Ratio</option>
+                            <option value="min_volatility">Min Volatility</option>
+                            <option value="risk_parity">Risk Parity</option>
+                            <option value="max_diversification">Max Diversification</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Start Date</label>
+                        <input type="date" id="opt-start" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">End Date</label>
+                        <input type="date" id="opt-end" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <button onclick="runOptimization()" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                        OPTIMIZE
+                    </button>
+                    <button onclick="calculateFrontier()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                        EFFICIENT FRONTIER
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="opt-results" class="hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Expected Return</div>
+                        <div class="text-xl sm:text-2xl font-bold text-green-500" id="opt-return">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Volatility</div>
+                        <div class="text-xl sm:text-2xl font-bold text-blue-500" id="opt-vol">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Sharpe Ratio</div>
+                        <div class="text-xl sm:text-2xl font-bold text-yellow-500" id="opt-sharpe">-</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border-2 border-neutral-800 hover:border-neutral-700 rounded-xl p-5 shadow-xl transition-all">
+                        <h4 class="text-xs text-green-500 font-bold mb-4 tracking-wider">[ OPTIMAL WEIGHTS ]</h4>
+                        <div style="height: 320px;">
+                            <canvas id="weightsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-neutral-900 to-neutral-950 border-2 border-neutral-800 hover:border-neutral-700 rounded-xl p-5 shadow-xl transition-all">
+                        <h4 class="text-xs text-green-500 font-bold mb-4 tracking-wider">[ EFFICIENT FRONTIER ]</h4>
+                        <div style="height: 320px;">
+                            <canvas id="frontierChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Options Pricing -->
+        <div id="tool-options" class="tool-section hidden">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ OPTIONS PRICING - BLACK-SCHOLES ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Spot Price</label>
+                        <input type="number" id="opt-spot" value="100" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Strike Price</label>
+                        <input type="number" id="opt-strike" value="105" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Time to Expiry (years)</label>
+                        <input type="number" id="opt-expiry" value="0.25" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Volatility</label>
+                        <input type="number" id="opt-vol-input" value="0.25" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Risk-Free Rate</label>
+                        <input type="number" id="opt-rfr" value="0.05" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Option Type</label>
+                        <select id="opt-option-type" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                            <option value="call">Call</option>
+                            <option value="put">Put</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="priceOption()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                    CALCULATE
+                </button>
+            </div>
+
+            <div id="options-results" class="hidden">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Price</div>
+                        <div class="text-lg sm:text-xl font-bold text-green-500" id="opt-price">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Delta</div>
+                        <div class="text-lg sm:text-xl font-bold" id="opt-delta">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Gamma</div>
+                        <div class="text-lg sm:text-xl font-bold" id="opt-gamma">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Vega</div>
+                        <div class="text-xl font-bold" id="opt-vega">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Theta</div>
+                        <div class="text-xl font-bold" id="opt-theta">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Rho</div>
+                        <div class="text-xl font-bold" id="opt-rho">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DCF Model -->
+        <div id="tool-dcf" class="tool-section hidden">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ DCF VALUATION ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Free Cash Flows (comma-separated, millions)</label>
+                        <input type="text" id="dcf-fcf" value="100,110,121,133,146" 
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Discount Rate (WACC)</label>
+                        <input type="number" id="dcf-discount" value="0.10" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Terminal Growth Rate</label>
+                        <input type="number" id="dcf-growth" value="0.025" step="0.001"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Shares Outstanding (millions, optional)</label>
+                        <input type="number" id="dcf-shares" value="" placeholder="Leave empty for EV only"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+                
+                <button onclick="calculateDCF()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                    CALCULATE
+                </button>
+            </div>
+
+            <div id="dcf-results" class="hidden">
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Enterprise Value</div>
+                        <div class="text-xl font-bold text-green-500" id="dcf-ev">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">PV Projected FCF</div>
+                        <div class="text-xl font-bold" id="dcf-pv-fcf">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">PV Terminal Value</div>
+                        <div class="text-xl font-bold" id="dcf-pv-terminal">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Price Per Share</div>
+                        <div class="text-xl font-bold text-yellow-500" id="dcf-price">-</div>
+                    </div>
+                </div>
+
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <h4 class="text-xs text-neutral-500 mb-3">SENSITIVITY ANALYSIS</h4>
+                    <div style="height: 300px; overflow: auto;">
+                        <table class="w-full text-xs" id="dcf-sensitivity-table">
+                            <thead class="bg-neutral-950 sticky top-0">
+                                <tr>
+                                    <th class="text-left p-2 border border-neutral-700">Discount Rate</th>
+                                    <th class="text-center p-2 border border-neutral-700">TGR -1%</th>
+                                    <th class="text-center p-2 border border-neutral-700">TGR Base</th>
+                                    <th class="text-center p-2 border border-neutral-700">TGR +1%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dcf-sensitivity-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monte Carlo -->
+        <div id="tool-montecarlo" class="tool-section hidden">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ MONTE CARLO SIMULATION ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Initial Price</label>
+                        <input type="number" id="mc-initial" value="100" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Expected Return</label>
+                        <input type="number" id="mc-return" value="0.10" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Volatility</label>
+                        <input type="number" id="mc-volatility" value="0.20" step="0.01"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Time Horizon (days)</label>
+                        <input type="number" id="mc-horizon" value="252" step="1"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Simulations</label>
+                        <input type="number" id="mc-sims" value="1000" step="100"
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+                
+                <button onclick="runMonteCarlo()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                    SIMULATE
+                </button>
+            </div>
+
+            <div id="mc-results" class="hidden">
+                <div class="grid grid-cols-5 gap-4 mb-4">
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Mean Price</div>
+                        <div class="text-xl font-bold text-green-500" id="mc-mean">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">Median Price</div>
+                        <div class="text-xl font-bold" id="mc-median">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">5th Percentile</div>
+                        <div class="text-xl font-bold text-red-500" id="mc-p5">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">95th Percentile</div>
+                        <div class="text-xl font-bold text-green-500" id="mc-p95">-</div>
+                    </div>
+                    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                        <div class="text-xs text-neutral-500 mb-1">P(Profit)</div>
+                        <div class="text-xl font-bold text-yellow-500" id="mc-prob">-</div>
+                    </div>
+                </div>
+
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <h4 class="text-xs text-neutral-500 mb-3">SAMPLE PRICE PATHS</h4>
+                    <div style="height: 300px;">
+                        <canvas id="mcChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Correlation Matrix -->
+        <div id="tool-correlation" class="tool-section hidden">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ CORRELATION MATRIX ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div class="col-span-3">
+                        <label class="block text-xs text-neutral-500 mb-2">Symbols (comma-separated)</label>
+                        <input type="text" id="corr-symbols" value="AAPL,MSFT,GOOGL,AMZN,TSLA,SPY" 
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Start Date</label>
+                        <input type="date" id="corr-start" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">End Date</label>
+                        <input type="date" id="corr-end" class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+                
+                <button onclick="calculateCorrelation()" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold w-full sm:w-auto">
+                    CALCULATE
+                </button>
+            </div>
+
+            <div id="corr-results" class="hidden">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <div style="overflow: auto;">
+                        <table class="w-full text-xs" id="corr-matrix-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Streaming -->
+        <div id="tool-streaming" class="tool-section hidden">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-6 mb-4">
+                <h3 class="text-xs sm:text-sm font-mono text-green-500 mb-4">[ REAL-TIME MARKET DATA STREAM ]</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-500 mb-2">Symbol</label>
+                        <input type="text" id="stream-symbol" value="AAPL" 
+                               class="w-full bg-neutral-950 border border-neutral-700 rounded px-3 py-2 text-sm uppercase">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <button onclick="startStreaming()" id="stream-start-btn"
+                            class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold">
+                        START STREAM
+                    </button>
+                    <button onclick="stopStreaming()" id="stream-stop-btn" disabled
+                            class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 rounded text-sm font-bold disabled:opacity-50">
+                        STOP STREAM
+                    </button>
+                </div>
+            </div>
+
+            <div id="stream-data" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <div class="text-xs text-neutral-500 mb-1">Price</div>
+                    <div class="text-2xl font-bold text-green-500" id="stream-price">--</div>
+                </div>
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <div class="text-xs text-neutral-500 mb-1">Change</div>
+                    <div class="text-2xl font-bold" id="stream-change">--</div>
+                </div>
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <div class="text-xs text-neutral-500 mb-1">Volume</div>
+                    <div class="text-2xl font-bold" id="stream-volume">--</div>
+                </div>
+                <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                    <div class="text-xs text-neutral-500 mb-1">Last Update</div>
+                    <div class="text-sm font-mono" id="stream-time">--</div>
+                </div>
+            </div>
+
+            <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+                <h4 class="text-xs text-neutral-500 mb-3">PRICE CHART (LIVE)</h4>
+                <div style="height: 300px;">
+                    <canvas id="streamChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-neutral-900 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-neutral-500">
+            <p>NeuroQuant © 2025 • Algorithmic Trading Platform</p>
+        </div>
+    </footer>
+
+    <script src="/static/components/header.js"></script>
+    <script>
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        document.getElementById('opt-start').value = oneYearAgo;
+        document.getElementById('opt-end').value = today;
+        document.getElementById('corr-start').value = oneYearAgo;
+        document.getElementById('corr-end').value = today;
+
+        // Tool switching
+        function showTool(toolName) {
+            // Hide all tools
+            document.querySelectorAll('.tool-section').forEach(el => el.classList.add('hidden'));
+            
+            // Reset all button styles
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('border-green-500');
+                btn.classList.add('border-neutral-700');
+            });
+            
+            // Show selected tool
+            document.getElementById(`tool-${toolName}`).classList.remove('hidden');
+            
+            // Highlight selected button
+            const btn = document.getElementById(`btn-${toolName}`);
+            btn.classList.remove('border-neutral-700');
+            btn.classList.add('border-green-500');
+        }
+
+        // Portfolio Optimization
+        async function runOptimization() {
+            const symbols = document.getElementById('opt-symbols').value.split(',').map(s => s.trim());
+            const start = document.getElementById('opt-start').value;
+            const end = document.getElementById('opt-end').value;
+            const type = document.getElementById('opt-type').value;
+
+            try {
+                const response = await fetch('/api/advanced/optimize-portfolio', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        symbols, start_date: start, end_date: end,
+                        optimization_type: type, risk_free_rate: 0.02
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Optimization response:', data);
+                
+                if (!data.weights) {
+                    throw new Error('No weights returned from optimization');
+                }
+                
+                // Display results
+                document.getElementById('opt-results').classList.remove('hidden');
+                document.getElementById('opt-return').textContent = (data.expected_return * 100).toFixed(2) + '%';
+                document.getElementById('opt-vol').textContent = (data.volatility * 100).toFixed(2) + '%';
+                document.getElementById('opt-sharpe').textContent = data.sharpe_ratio.toFixed(2);
+
+                // Wait for layout to complete before creating chart
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Weights chart
+                const ctx = document.getElementById('weightsChart').getContext('2d');
+                if (window.weightsChart && typeof window.weightsChart.destroy === 'function') {
+                    window.weightsChart.destroy();
+                }
+                
+                // Professional color palette with gradients
+                const colors = [
+                    '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#6366f1'
+                ];
+                
+                const weights = Object.entries(data.weights).sort((a, b) => b[1] - a[1]);
+                
+                window.weightsChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: weights.map(([symbol]) => symbol),
+                        datasets: [{
+                            data: weights.map(([, weight]) => weight * 100),
+                            backgroundColor: colors.slice(0, weights.length),
+                            borderColor: '#0a0a0a',
+                            borderWidth: 3,
+                            hoverBorderColor: '#10b981',
+                            hoverBorderWidth: 4,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: 10
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                align: 'center',
+                                labels: {
+                                    color: '#e5e5e5',
+                                    font: {
+                                        size: 12, 
+                                        family: 'monospace', 
+                                        weight: '600'
+                                    },
+                                    padding: 14,
+                                    boxWidth: 14,
+                                    boxHeight: 14,
+                                    generateLabels: function(chart) {
+                                        const data = chart.data;
+                                        return data.labels.map((label, i) => {
+                                            const value = data.datasets[0].data[i];
+                                            return {
+                                                text: `${label}  ${value.toFixed(1)}%`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                strokeStyle: data.datasets[0].borderColor,
+                                                lineWidth: 2,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                titleColor: '#10b981',
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: 'monospace'
+                                },
+                                bodyColor: '#f5f5f5',
+                                bodyFont: {
+                                    size: 13,
+                                    family: 'monospace',
+                                    weight: '500'
+                                },
+                                borderColor: '#10b981',
+                                borderWidth: 2,
+                                padding: 14,
+                                displayColors: true,
+                                boxWidth: 14,
+                                boxHeight: 14,
+                                boxPadding: 8,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    },
+                                    label: function(context) {
+                                        const percentage = context.parsed.toFixed(2);
+                                        const weight = (context.parsed / 100).toFixed(4);
+                                        return [
+                                            `Allocation: ${percentage}%`,
+                                            `Weight: ${weight}`
+                                        ];
+                                    },
+                                    afterLabel: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const contribution = (context.parsed / total * 100).toFixed(1);
+                                        return `\nContribution: ${contribution}% of portfolio`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%',
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Optimization error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function calculateFrontier() {
+            const symbols = document.getElementById('opt-symbols').value.split(',').map(s => s.trim());
+            const start = document.getElementById('opt-start').value;
+            const end = document.getElementById('opt-end').value;
+
+            try {
+                const response = await fetch('/api/advanced/efficient-frontier', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        symbols, start_date: start, end_date: end,
+                        risk_free_rate: 0.02, optimization_type: 'max_sharpe'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Efficient frontier response:', data);
+                
+                if (!data.efficient_frontier || !data.monte_carlo) {
+                    throw new Error('Invalid frontier data received');
+                }
+                
+                // Make results visible
+                document.getElementById('opt-results').classList.remove('hidden');
+                
+                // Wait for layout to complete
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Frontier chart - Find optimal portfolio
+                const optimalPortfolio = data.efficient_frontier.reduce((max, p) => 
+                    (p.sharpe_ratio || 0) > (max.sharpe_ratio || 0) ? p : max
+                , data.efficient_frontier[0]);
+                
+                const ctx = document.getElementById('frontierChart').getContext('2d');
+                
+                // Create gradient for frontier line
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 1)');
+                gradient.addColorStop(0.5, 'rgba(34, 197, 94, 0.9)');
+                gradient.addColorStop(1, 'rgba(52, 211, 153, 0.8)');
+                
+                if (window.frontierChart && typeof window.frontierChart.destroy === 'function') {
+                    window.frontierChart.destroy();
+                }
+                window.frontierChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Random Portfolios',
+                                data: data.monte_carlo.slice(0, 1500).map(p => ({
+                                    x: p.volatility * 100, 
+                                    y: p.return * 100
+                                })),
+                                backgroundColor: 'rgba(100, 116, 139, 0.12)',
+                                borderColor: 'rgba(100, 116, 139, 0)',
+                                pointRadius: 1.5,
+                                pointHoverRadius: 0,
+                                order: 3
+                            },
+                            {
+                                label: 'Efficient Frontier',
+                                data: data.efficient_frontier.map(p => ({
+                                    x: p.volatility * 100, 
+                                    y: p.return * 100
+                                })),
+                                borderColor: gradient,
+                                backgroundColor: 'transparent',
+                                showLine: true,
+                                borderWidth: 4,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                                tension: 0.4,
+                                fill: false,
+                                order: 2
+                            },
+                            {
+                                label: 'Optimal Portfolio',
+                                data: [{
+                                    x: optimalPortfolio.volatility * 100,
+                                    y: optimalPortfolio.return * 100
+                                }],
+                                backgroundColor: '#fbbf24',
+                                borderColor: '#f59e0b',
+                                pointRadius: 9,
+                                pointHoverRadius: 11,
+                                pointStyle: 'star',
+                                borderWidth: 2,
+                                order: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'point',
+                            intersect: true
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'center',
+                                labels: {
+                                    color: '#e5e5e5',
+                                    font: {
+                                        size: 11, 
+                                        family: 'monospace',
+                                        weight: '600'
+                                    },
+                                    padding: 14,
+                                    usePointStyle: true,
+                                    boxWidth: 10,
+                                    boxHeight: 10,
+                                    filter: function(item) {
+                                        return item.text !== 'Efficient Frontier';
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                filter: function(tooltipItem) {
+                                    return tooltipItem.datasetIndex === 2;
+                                },
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                titleColor: '#fbbf24',
+                                titleFont: {
+                                    size: 12,
+                                    weight: 'bold',
+                                    family: 'monospace'
+                                },
+                                bodyColor: '#f5f5f5',
+                                bodyFont: {
+                                    size: 11,
+                                    family: 'monospace'
+                                },
+                                borderColor: '#fbbf24',
+                                borderWidth: 2,
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    title: function() {
+                                        return 'Optimal Portfolio';
+                                    },
+                                    label: function(context) {
+                                        return `Return: ${context.parsed.y.toFixed(2)}% | Risk: ${context.parsed.x.toFixed(2)}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(64, 64, 64, 0.3)',
+                                    lineWidth: 1,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#a3a3a3',
+                                    font: {
+                                        size: 10, 
+                                        family: 'monospace'
+                                    },
+                                    callback: function(value) {
+                                        return value.toFixed(0) + '%';
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Risk (Volatility)',
+                                    color: '#737373',
+                                    font: {
+                                        size: 11, 
+                                        weight: 'bold', 
+                                        family: 'monospace'
+                                    },
+                                    padding: {top: 8}
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(64, 64, 64, 0.3)',
+                                    lineWidth: 1,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#a3a3a3',
+                                    font: {
+                                        size: 10, 
+                                        family: 'monospace'
+                                    },
+                                    callback: function(value) {
+                                        return value.toFixed(0) + '%';
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Expected Return',
+                                    color: '#737373',
+                                    font: {
+                                        size: 11, 
+                                        weight: 'bold', 
+                                        family: 'monospace'
+                                    },
+                                    padding: {bottom: 8}
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Frontier calculation error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Options Pricing
+        async function priceOption() {
+            const spot = parseFloat(document.getElementById('opt-spot').value);
+            const strike = parseFloat(document.getElementById('opt-strike').value);
+            const expiry = parseFloat(document.getElementById('opt-expiry').value);
+            const vol = parseFloat(document.getElementById('opt-vol-input').value);
+            const rfr = parseFloat(document.getElementById('opt-rfr').value);
+            const type = document.getElementById('opt-option-type').value;
+
+            try {
+                const response = await fetch('/api/advanced/option-pricing', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({spot, strike, time_to_expiry: expiry, risk_free_rate: rfr, volatility: vol, option_type: type})
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('options-results').classList.remove('hidden');
+                document.getElementById('opt-price').textContent = '$' + data.price.toFixed(2);
+                document.getElementById('opt-delta').textContent = data.delta.toFixed(4);
+                document.getElementById('opt-gamma').textContent = data.gamma.toFixed(4);
+                document.getElementById('opt-vega').textContent = data.vega.toFixed(4);
+                document.getElementById('opt-theta').textContent = data.theta.toFixed(4);
+                document.getElementById('opt-rho').textContent = data.rho.toFixed(4);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // DCF Model
+        async function calculateDCF() {
+            const fcf = document.getElementById('dcf-fcf').value.split(',').map(v => parseFloat(v.trim()));
+            const discount = parseFloat(document.getElementById('dcf-discount').value);
+            const growth = parseFloat(document.getElementById('dcf-growth').value);
+            const shares = document.getElementById('dcf-shares').value ? parseFloat(document.getElementById('dcf-shares').value) : null;
+
+            try {
+                const response = await fetch('/api/advanced/dcf-valuation', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({free_cash_flows: fcf, discount_rate: discount, terminal_growth_rate: growth, shares_outstanding: shares})
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('dcf-results').classList.remove('hidden');
+                document.getElementById('dcf-ev').textContent = '$' + (data.enterprise_value / 1000000).toFixed(1) + 'M';
+                document.getElementById('dcf-pv-fcf').textContent = '$' + (data.pv_projected_fcf / 1000000).toFixed(1) + 'M';
+                document.getElementById('dcf-pv-terminal').textContent = '$' + (data.pv_terminal_value / 1000000).toFixed(1) + 'M';
+                document.getElementById('dcf-price').textContent = data.equity_value_per_share ? '$' + data.equity_value_per_share.toFixed(2) : 'N/A';
+
+                // Sensitivity table
+                const tbody = document.getElementById('dcf-sensitivity-body');
+                tbody.innerHTML = '';
+                data.sensitivity_analysis.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-2 border border-neutral-700">${(row.discount_rate * 100).toFixed(1)}%</td>
+                        <td class="p-2 border border-neutral-700 text-center">${(Object.values(row)[1] / 1000000).toFixed(1)}M</td>
+                        <td class="p-2 border border-neutral-700 text-center">${(Object.values(row)[2] / 1000000).toFixed(1)}M</td>
+                        <td class="p-2 border border-neutral-700 text-center">${(Object.values(row)[3] / 1000000).toFixed(1)}M</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Monte Carlo
+        async function runMonteCarlo() {
+            const initial = parseFloat(document.getElementById('mc-initial').value);
+            const ret = parseFloat(document.getElementById('mc-return').value);
+            const vol = parseFloat(document.getElementById('mc-volatility').value);
+            const horizon = parseInt(document.getElementById('mc-horizon').value);
+            const sims = parseInt(document.getElementById('mc-sims').value);
+
+            try {
+                const response = await fetch('/api/advanced/monte-carlo', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({initial_price: initial, expected_return: ret, volatility: vol, time_horizon: horizon, n_simulations: sims})
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('mc-results').classList.remove('hidden');
+                document.getElementById('mc-mean').textContent = '$' + data.final_price_mean.toFixed(2);
+                document.getElementById('mc-median').textContent = '$' + data.final_price_median.toFixed(2);
+                document.getElementById('mc-p5').textContent = '$' + data.percentiles.p5.toFixed(2);
+                document.getElementById('mc-p95').textContent = '$' + data.percentiles.p95.toFixed(2);
+                document.getElementById('mc-prob').textContent = (data.probability_profit * 100).toFixed(1) + '%';
+
+                // Wait for layout
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Chart - Show only 10 sample paths for clarity
+                const ctx = document.getElementById('mcChart').getContext('2d');
+                if (window.mcChart && typeof window.mcChart.destroy === 'function') {
+                    window.mcChart.destroy();
+                }
+                
+                const pathsToShow = Math.min(10, data.sample_paths.length);
+                const colors = [
+                    '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#6366f1'
+                ];
+                
+                window.mcChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: data.sample_paths.slice(0, pathsToShow).map((path, i) => ({
+                            label: `Simulation ${i + 1}`,
+                            data: path.map((price, day) => ({x: day, y: price})),
+                            borderColor: colors[i],
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.1
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                                titleColor: '#10b981',
+                                bodyColor: '#f5f5f5',
+                                borderColor: '#404040',
+                                borderWidth: 1,
+                                padding: 10,
+                                callbacks: {
+                                    title: function(context) {
+                                        return `Day ${context[0].parsed.x}`;
+                                    },
+                                    label: function(context) {
+                                        return `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                grid: {
+                                    color: 'rgba(64, 64, 64, 0.3)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#a3a3a3',
+                                    font: {size: 10, family: 'monospace'}
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Days',
+                                    color: '#737373',
+                                    font: {size: 11, weight: 'bold', family: 'monospace'}
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(64, 64, 64, 0.3)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#a3a3a3',
+                                    font: {size: 10, family: 'monospace'},
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(0);
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Price',
+                                    color: '#737373',
+                                    font: {size: 11, weight: 'bold', family: 'monospace'}
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Correlation Matrix
+        async function calculateCorrelation() {
+            const symbols = document.getElementById('corr-symbols').value.split(',').map(s => s.trim());
+            const start = document.getElementById('corr-start').value;
+            const end = document.getElementById('corr-end').value;
+
+            try {
+                const response = await fetch('/api/advanced/optimize-portfolio', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({symbols, start_date: start, end_date: end, optimization_type: 'max_sharpe', risk_free_rate: 0.02})
+                });
+
+                const data = await response.json();
+                const corr = data.correlation_matrix;
+                
+                // Validate correlation matrix structure
+                if (!corr || typeof corr !== 'object') {
+                    throw new Error('Invalid correlation matrix structure');
+                }
+                
+                // Build table
+                document.getElementById('corr-results').classList.remove('hidden');
+                const table = document.getElementById('corr-matrix-table');
+                table.innerHTML = '';
+                
+                const thead = document.createElement('thead');
+                thead.innerHTML = '<tr><th class="p-2 border border-neutral-700"></th>' + 
+                    symbols.map(s => `<th class="p-2 border border-neutral-700">${s}</th>`).join('') + '</tr>';
+                table.appendChild(thead);
+                
+                const tbody = document.createElement('tbody');
+                symbols.forEach(sym1 => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="p-2 border border-neutral-700 font-bold">${sym1}</td>` +
+                        symbols.map(sym2 => {
+                            // Check if the symbol exists in correlation matrix
+                            if (!corr[sym1] || corr[sym1][sym2] === undefined) {
+                                return `<td class="p-2 border border-neutral-700 text-center">N/A</td>`;
+                            }
+                            const val = corr[sym1][sym2];
+                            const color = val > 0.7 ? 'text-green-500' : val < -0.3 ? 'text-red-500' : '';
+                            return `<td class="p-2 border border-neutral-700 text-center ${color}">${val.toFixed(2)}</td>`;
+                        }).join('');
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+            } catch (error) {
+                console.error('Correlation error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Real-Time Streaming
+        let ws = null;
+        let streamChart = null;
+        let streamData = [];
+
+        function startStreaming() {
+            const symbol = document.getElementById('stream-symbol').value.toUpperCase();
+            
+            if (ws) {
+                ws.close();
+            }
+
+            // Create WebSocket connection (auto-detect protocol and host)
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsHost = window.location.hostname === 'localhost' 
+                ? 'localhost:8000' 
+                : window.location.host;
+            ws = new WebSocket(`${wsProtocol}//${wsHost}/api/advanced/ws/market-data/${symbol}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.getElementById('stream-start-btn').disabled = true;
+                document.getElementById('stream-stop-btn').disabled = false;
+                streamData = [];
+            };
+
+            ws.onmessage = (event) => {
+                const quote = JSON.parse(event.data);
+                updateStreamDisplay(quote);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                alert('Error connecting to stream');
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket closed');
+                document.getElementById('stream-start-btn').disabled = false;
+                document.getElementById('stream-stop-btn').disabled = true;
+            };
+        }
+
+        function stopStreaming() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function updateStreamDisplay(quote) {
+            document.getElementById('stream-price').textContent = '$' + quote.price.toFixed(2);
+            const change = quote.change;
+            const changeEl = document.getElementById('stream-change');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + ' (' + quote.change_percent.toFixed(2) + '%)';
+            changeEl.className = 'text-2xl font-bold ' + (change >= 0 ? 'text-green-500' : 'text-red-500');
+            document.getElementById('stream-volume').textContent = (quote.volume / 1000000).toFixed(2) + 'M';
+            document.getElementById('stream-time').textContent = new Date(quote.timestamp).toLocaleTimeString();
+
+            // Update chart
+            streamData.push(quote.price);
+            if (streamData.length > 100) streamData.shift();
+
+            const ctx = document.getElementById('streamChart').getContext('2d');
+            if (streamChart && typeof streamChart.destroy === 'function') {
+                streamChart.destroy();
+            }
+            streamChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: streamData.map((_, i) => i),
+                    datasets: [{
+                        label: 'Price',
+                        data: streamData,
+                        borderColor: '#22c55e',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {legend: {display: false}},
+                    scales: {
+                        x: {display: false},
+                        y: {ticks: {color: '#a3a3a3'}}
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

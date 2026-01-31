@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # NeuroQuant API Service
+  neuroquant-api:
+    build: .
+    container_name: neuroquant-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=/app/database/neuroquant.db
+      - REDIS_ENABLED=true
+      - REDIS_HOST=redis
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+    volumes:
+      - ./database:/app/database
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./checkpoints:/app/checkpoints
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - neuroquant-network
+
+  # Redis Cache Service (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: neuroquant-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - neuroquant-network
+    command: redis-server --appendonly yes
+
+  # Frontend Service (Nginx)
+  frontend:
+    image: nginx:alpine
+    container_name: neuroquant-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - neuroquant-api
+    restart: unless-stopped
+    networks:
+      - neuroquant-network
+
+volumes:
+  redis-data:
+
+networks:
+  neuroquant-network:
+    driver: bridge

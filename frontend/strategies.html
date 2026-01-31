@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategies — NeuroQuant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            letter-spacing: -0.011em; 
+            -webkit-font-smoothing: antialiased;
+        }
+        #createModal.hidden { display: none; }
+        #createModal:not(.hidden) { display: flex; }
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .mobile-menu.active {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    
+    <!-- Header -->
+    <header class="border-b border-neutral-900 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-lg sm:text-xl font-semibold">NeuroQuant</h1>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-6 text-sm">
+                    <a href="/" class="text-neutral-400 hover:text-white transition">Home</a>
+                    <a href="/dashboard" class="text-neutral-400 hover:text-white transition">Dashboard</a>
+                    <a href="/strategies" class="text-white font-medium">Strategies</a>
+                    <a href="/backtest" class="text-neutral-400 hover:text-white transition">Backtest</a>
+                    <a href="/compare" class="text-neutral-400 hover:text-white transition">Compare</a>
+                    <a href="/lab" class="text-neutral-400 hover:text-white transition">Lab</a>
+                </nav>
+
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 px-3 py-1.5 bg-neutral-900 rounded-lg">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-mono text-neutral-400">LIVE</span>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-neutral-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <nav id="mobileMenu" class="mobile-menu md:hidden mt-4 space-y-2">
+                <a href="/" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Home</a>
+                <a href="/dashboard" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Dashboard</a>
+                <a href="/strategies" class="block px-4 py-2 text-white font-medium bg-neutral-900 rounded-lg">Strategies</a>
+                <a href="/backtest" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Backtest</a>
+                <a href="/compare" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Compare</a>
+                <a href="/lab" class="block px-4 py-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition">Lab</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-semibold mb-2">Trading Strategies</h2>
+                <p class="text-sm sm:text-base text-neutral-500">Create and configure quantitative strategies</p>
+            </div>
+            <button onclick="showCreateStrategyModal()" class="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition text-sm sm:text-base">
+                + New Strategy
+            </button>
+        </div>
+        
+        <!-- Strategy Library -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" id="strategiesGrid">
+            <div class="col-span-full text-center text-sm sm:text-base text-neutral-500 py-12">Loading strategies...</div>
+        </div>
+    </main>
+
+    <!-- Create Strategy Modal -->
+    <div id="createModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-8 max-w-2xl w-full my-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-semibold">Create New Strategy</h3>
+                <button onclick="hideCreateStrategyModal()" class="text-neutral-500 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="createStrategyForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm text-neutral-400 mb-2">Strategy Name</label>
+                    <input type="text" id="strategyName" placeholder="My MA Crossover" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-600" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-neutral-400 mb-2">Strategy Type</label>
+                    <select id="strategyType" onchange="updateParameters()" class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-600" required>
+                        <option value="">Select a strategy...</option>
+                        <option value="ma_cross">Moving Average Crossover</option>
+                        <option value="rsi">RSI Mean Reversion</option>
+                        <option value="momentum">Momentum</option>
+                        <option value="buy_hold">Buy & Hold</option>
+                    </select>
+                </div>
+                
+                <div id="parametersContainer" class="hidden">
+                    <label class="block text-sm text-neutral-400 mb-3">Parameters</label>
+                    <div id="parameters" class="space-y-4"></div>
+                </div>
+                
+                <div class="flex items-center space-x-3 pt-4">
+                    <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition">
+                        Create Strategy
+                    </button>
+                    <button type="button" onclick="hideCreateStrategyModal()" class="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white py-3 rounded-lg font-medium transition">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.toggle('active');
+        });
+
+        // Auto-detect API base URL (works for both local and deployed)
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000/api' 
+            : `${window.location.origin}/api`;
+        let availableStrategies = [];
+        
+        async function loadStrategies() {
+            try {
+                const [configsResponse, templatesResponse] = await Promise.all([
+                    fetch(API_BASE + '/agents'),
+                    fetch(API_BASE + '/strategies')
+                ]);
+                
+                const configs = await configsResponse.json();
+                const templates = await templatesResponse.json();
+                availableStrategies = templates.strategies;
+                
+                displayStrategies(configs, templates.strategies);
+            } catch (error) {
+                console.error('Error loading strategies:', error);
+            }
+        }
+        
+        function displayStrategies(userConfigs, templates) {
+            const grid = document.getElementById('strategiesGrid');
+            
+            let html = userConfigs.map(config => `
+                <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-6 hover:border-green-600 transition">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">${config.name}</h3>
+                            <span class="text-xs px-2 py-1 bg-green-600/10 text-green-600 rounded border border-green-600/20">${config.type}</span>
+                        </div>
+                        <button onclick="runBacktest('${config.name}', '${config.type}', ${JSON.stringify(config.parameters).replace(/"/g, '&quot;')})" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded text-sm font-medium transition">
+                            Run Test
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${Object.entries(config.parameters).map(([key, value]) => `
+                            <div class="flex justify-between text-sm">
+                                <span class="text-neutral-500">${key}:</span>
+                                <span class="font-mono">${value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            
+            html += templates.map(template => `
+                <div class="bg-neutral-950 border border-neutral-900 rounded-xl p-6 hover:border-neutral-800 transition opacity-75">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">${template.name}</h3>
+                            <p class="text-xs text-neutral-500 mb-2">${template.description}</p>
+                            <span class="text-xs px-2 py-1 bg-neutral-800 text-neutral-400 rounded">${template.id}</span>
+                        </div>
+                    </div>
+                    <button onclick="quickBacktest('${template.id}')" class="w-full px-3 py-2 bg-neutral-900 hover:bg-neutral-800 rounded text-sm font-medium transition">
+                        Quick Test
+                    </button>
+                </div>
+            `).join('');
+            
+            grid.innerHTML = html || '<div class="col-span-full text-center text-neutral-500 py-12">No strategies yet. Create your first strategy!</div>';
+        }
+        
+        function showCreateStrategyModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideCreateStrategyModal() {
+            document.getElementById('createModal').classList.add('hidden');
+            document.getElementById('createStrategyForm').reset();
+            document.getElementById('parametersContainer').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function updateParameters() {
+            const type = document.getElementById('strategyType').value;
+            const container = document.getElementById('parametersContainer');
+            const paramsDiv = document.getElementById('parameters');
+            
+            if (!type) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            const strategy = availableStrategies.find(s => s.id === type);
+            if (!strategy || !strategy.parameters) {
+                container.classList.add('hidden');
+                return;
+            }
+            
+            container.classList.remove('hidden');
+            paramsDiv.innerHTML = Object.entries(strategy.parameters).map(([key, config]) => `
+                <div>
+                    <label class="block text-sm text-neutral-400 mb-2">${key}</label>
+                    <input 
+                        type="number" 
+                        id="param_${key}" 
+                        value="${config.default}" 
+                        min="${config.min || 0}" 
+                        max="${config.max || 1000}"
+                        class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-green-600"
+                    >
+                    <p class="text-xs text-neutral-600 mt-1">Range: ${config.min || 0} - ${config.max || 1000}</p>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('createStrategyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('strategyName').value;
+            const type = document.getElementById('strategyType').value;
+            
+            const strategy = availableStrategies.find(s => s.id === type);
+            const parameters = {};
+            
+            if (strategy && strategy.parameters) {
+                Object.keys(strategy.parameters).forEach(key => {
+                    const input = document.getElementById(`param_${key}`);
+                    if (input) {
+                        parameters[key] = parseInt(input.value);
+                    }
+                });
+            }
+            
+            try {
+                const response = await fetch(API_BASE + '/agents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, type, parameters })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to create strategy');
+                }
+                
+                hideCreateStrategyModal();
+                loadStrategies();
+                alert('Strategy created successfully!');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to create strategy: ' + error.message);
+            }
+        });
+        
+        async function quickBacktest(strategyId) {
+            window.location.href = `/backtest?strategy=${strategyId}`;
+        }
+        
+        async function runBacktest(name, type, params) {
+            window.location.href = `/backtest?strategy=${type}&params=${encodeURIComponent(JSON.stringify(params))}`;
+        }
+        
+        loadStrategies();
+    </script>
+
+    <footer class="border-t border-neutral-900 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center text-sm text-neutral-500">
+            <p>NeuroQuant © 2025 • Algorithmic Trading Platform</p>
+        </div>
+    </footer>
+
+</body>
+</html>

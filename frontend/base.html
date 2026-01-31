@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NeuroQuant{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-black text-white min-h-screen">
+    
+    <header class="border-b border-neutral-900 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-8">
+                <h1 class="text-xl font-semibold">NeuroQuant</h1>
+                <nav class="flex items-center space-x-6 text-sm">
+                    <a href="/" class="{% block nav_home %}text-neutral-400 hover:text-white transition{% endblock %}">Home</a>
+                    <a href="/dashboard" class="{% block nav_dashboard %}text-neutral-400 hover:text-white transition{% endblock %}">Dashboard</a>
+                    <a href="/strategies" class="{% block nav_strategies %}text-neutral-400 hover:text-white transition{% endblock %}">Strategies</a>
+                    <a href="/backtest" class="{% block nav_backtest %}text-neutral-400 hover:text-white transition{% endblock %}">Backtest</a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-2 px-3 py-1.5 bg-neutral-900 rounded-lg">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs font-mono text-neutral-400">LIVE</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-neutral-900 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center text-sm text-neutral-500">
+            <p>NeuroQuant © 2025 • Algorithmic Trading Platform</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
